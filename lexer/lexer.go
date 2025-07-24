@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"github.com/andrearcaina/zephyr-lang/token"
+	"github.com/andrearcaina/zephyr/token"
 )
 
 // A Lexer (in the context of programming) is a component that processes input text
@@ -32,6 +32,15 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+// PeekChar returns the next character in the input string without advancing the position
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 // NextToken returns the next token from the input string based on the current character
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
@@ -40,7 +49,13 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.char {
 	case '=':
-		tok = newToken(token.ASSIGN, l.char)
+		if l.peekChar() == '=' {
+			eqChar := l.char
+			l.readChar()
+			tok = token.Token{Type: token.EQ, Literal: string(eqChar) + string(l.char)}
+		} else {
+			tok = newToken(token.ASSIGN, l.char)
+		}
 	case '+':
 		tok = newToken(token.PLUS, l.char)
 	case '-':
@@ -61,6 +76,18 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.char)
 	case '}':
 		tok = newToken(token.RBRACE, l.char)
+	case '!':
+		if l.peekChar() == '=' {
+			eqChar := l.char
+			l.readChar()
+			tok = token.Token{Type: token.NEQ, Literal: string(eqChar) + string(l.char)}
+		} else {
+			tok = newToken(token.BANG, l.char)
+		}
+	case '>':
+		tok = newToken(token.GT, l.char)
+	case '<':
+		tok = newToken(token.LT, l.char)
 	case 0:
 		tok.Literal = "" // manually set to empty string because inputting "" in newToken converts it to a string with a single character 0
 		tok.Type = token.EOF

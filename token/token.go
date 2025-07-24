@@ -23,6 +23,13 @@ const (
 	MINUS    = "-"
 	ASTERISK = "*"
 	SLASH    = "/"
+	BANG     = "!"
+
+	// Comparison operators
+	GT  = ">"
+	LT  = "<"
+	EQ  = "=="
+	NEQ = "!="
 
 	// Delimiters
 	COMMA     = ","
@@ -38,6 +45,8 @@ const (
 	LET      = "LET"
 	CONST    = "CONST"
 	RETURN   = "RETURN"
+	IF       = "IF"
+	ELSE     = "ELSE"
 )
 
 var keywords = map[string]TokenCategory{
@@ -45,6 +54,8 @@ var keywords = map[string]TokenCategory{
 	"let":    LET,
 	"const":  CONST,
 	"return": RETURN,
+	"if":     IF,
+	"else":   ELSE,
 }
 
 // LookupIdent checks if the given identifier is a keyword and returns the corresponding token type
