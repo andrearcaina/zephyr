@@ -148,6 +148,6 @@ func (l *Lexer) skipWhitespace() {
 }
 
 // newToken creates a new token with the specified type and character
-func newToken(tokenType token.TokenCategory, char byte) token.Token {
+func newToken(tokenType token.Category, char byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(char)}
 }

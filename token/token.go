@@ -2,10 +2,10 @@ package token
 
 // Token represents a single token in the input given to the lexer
 
-type TokenCategory string
+type Category string
 
 type Token struct {
-	Type    TokenCategory
+	Type    Category
 	Literal string
 }
 
@@ -49,7 +49,7 @@ const (
 	ELSE     = "ELSE"
 )
 
-var keywords = map[string]TokenCategory{
+var keywords = map[string]Category{
 	"func":   FUNCTION,
 	"let":    LET,
 	"const":  CONST,
@@ -59,7 +59,7 @@ var keywords = map[string]TokenCategory{
 }
 
 // LookupIdent checks if the given identifier is a keyword and returns the corresponding token type
-func LookupIdentifier(identifier string) TokenCategory {
+func LookupIdentifier(identifier string) Category {
 	if tok, ok := keywords[identifier]; ok {
 		return tok
 	}
