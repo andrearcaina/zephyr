@@ -1,5 +1,7 @@
 package ast
 
+import "bytes"
+
 type Program struct {
 	Statements []Statement
 }
@@ -13,4 +15,16 @@ func (p *Program) TokenLiteral() string {
 	} else {
 		return ""
 	}
+}
+
+// String creates a buffer and writes the return value of each statement's String method to it.
+// It then returns the string representation of the buffer. It delegates most of the work to the Statements of the Program struct.
+func (p *Program) String() string {
+	var out bytes.Buffer
+
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
 }

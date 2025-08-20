@@ -1,11 +1,20 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/andrearcaina/zephyr/ast"
 	"github.com/andrearcaina/zephyr/lexer"
 	"github.com/andrearcaina/zephyr/token"
+)
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS
+	LESSGREATER
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
 )
 
 type Parser struct {
@@ -13,6 +22,14 @@ type Parser struct {
 	curToken  token.Token
 	peekToken token.Token
 	errors    []string
+
+	// prefixParseFns is a map of functions, where the token Category is the key,
+	// and the value is a function that returns an ast.Expression (e.g., an identifier, integer, or boolean).
+	prefixParseFns map[token.Category]func() ast.Expression
+	// infixParseFns is a map of functions, where the token Category is the key,
+	// and the value is a function that takes an ast.Expression and returns another ast.Expression (e.g., for parsing binary operations).
+	// an example of this is the addition operator, which takes an ast.Expression (the left operand) and returns a new ast.Expression (the result of the addition).
+	infixParseFns map[token.Category]func(ast.Expression) ast.Expression
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -24,95 +41,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 	p.nextToken()
 
+	p.prefixParseFns = make(map[token.Category]func() ast.Expression)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+
 	return p
-}
-
-func (p *Parser) Errors() []string {
-	return p.errors
-}
-
-func (p *Parser) peekError(t token.Category) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
-	p.errors = append(p.errors, msg)
-}
-
-func (p *Parser) nextToken() {
-	p.curToken = p.peekToken
-	p.peekToken = p.l.NextToken()
-}
-
-func (p *Parser) ParseProgram() *ast.Program {
-	program := &ast.Program{}
-	program.Statements = []ast.Statement{}
-
-	for p.curToken.Type != token.EOF {
-		stmt := p.parseStatement()
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
-		}
-		p.nextToken()
-	}
-
-	return program
-}
-
-func (p *Parser) parseStatement() ast.Statement {
-	switch p.curToken.Type {
-	case token.LET:
-		return p.parseLetStatement()
-	case token.RETURN:
-		return p.parseReturnStatement()
-	default:
-		return nil
-	}
-}
-
-func (p *Parser) parseLetStatement() *ast.LetStatement {
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
-
-	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
-}
-
-func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-	stmt := &ast.ReturnStatement{Token: p.curToken}
-
-	p.nextToken()
-
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
-}
-
-func (p *Parser) curTokenIs(t token.Category) bool {
-	return p.curToken.Type == t
-}
-
-func (p *Parser) peekTokenIs(t token.Category) bool {
-	return p.peekToken.Type == t
-}
-
-func (p *Parser) expectPeek(t token.Category) bool {
-	if p.peekTokenIs(t) {
-		p.nextToken()
-		return true
-	} else {
-		p.peekError(t)
-		return false
-	}
 }
